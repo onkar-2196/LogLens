@@ -1,74 +1,26 @@
-# LogLens — Security Log Analysis
+# LogLens – Simplified Security Log Analysis
 
-## Overview
+SIEM-lite: upload an Apache/Nginx log, get a dashboard of attacks (SQLi, XSS, traversal, brute force).
 
-LogLens is a Python-based project that analyses web access logs and detects basic suspicious request patterns.
-
-## Features
-
-- Apache-style access log parsing
-- Basic SQL injection detection
-- Cross-Site Scripting (XSS) pattern detection
-- Directory traversal detection
-- JSON analysis report generation
-- Request counts by IP address
-- Attack summary
-- Flask API
-- Web dashboard with search and attack filters
-- Automated tests using Python unittest
-
-## Technology Stack
-
-- Python
-- Regular Expressions
-- Flask
-- HTML, CSS and JavaScript
-- JSON
-- unittest
-
-## Project Setup
-
-Install Flask:
-
+## Run
 ```bash
-python -m pip install flask
+# backend
+cd backend && pip install -r requirements.txt && python app.py      # http://localhost:5000
+# frontend
+cd frontend && npm install && npm run dev                            # http://localhost:5173
+# tests
+cd backend && pip install pytest && pytest
 ```
+Optional GeoIP: download MaxMind GeoLite2-Country.mmdb and set `GEOIP_DB=/path/to/file.mmdb`.
+Without it, a small demo prefix table is used.
 
-## Run the Analysis Pipeline
+## Performance note: how large files are handled
+- **Upload:** Flask/Werkzeug writes the multipart body to a temp file in chunks; the file is never held in RAM.
+- **Parsing:** `iter_log()` is a generator that reads one line at a time, so memory is O(1) in file size.
+- **Aggregation:** only counters (per hour / type / IP) and a capped 300-event sample are kept, not parsed rows.
+- **Async:** upload returns a job ID (202) immediately; a worker pool processes it and the UI polls `/api/jobs/<id>`.
+  For production swap `ThreadPoolExecutor` for Celery/RQ + Redis (and run Gunicorn with multiple workers).
+- **Detection:** regexes are pre-compiled once; paths are URL-decoded (twice) before matching to catch encoded payloads.
 
-```bash
-python pipeline.py
-```
-
-This reads the configured sample log file and generates `analysis_report.json`.
-
-## Run Automated Tests
-
-```bash
-python -m unittest test_pipeline.py
-```
-
-## Start the Web Application
-
-```bash
-python app.py
-```
-
-Open the dashboard:
-
-http://127.0.0.1:5000/dashboard
-
-API endpoints:
-
-- `/` — API status
-- `/api/logs` — Analysed log entries
-- `/api/summary` — Summary of logs and detected attacks
-- `/dashboard` — Web dashboard
-
-## Limitations
-
-Detection relies on basic signatures and can produce false positives or miss attacks. Severity is a simplified demonstration rule and is not a production risk assessment.
-
-## Disclaimer
-
-This project is intended for educational use and authorised security log analysis only.
+## Extending
+Add rules in `backend/signatures.json` (`id`, `type`, `severity`, `pattern`, `target`: `request` | `user_agent`).

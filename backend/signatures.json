@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "signatures": [
+    {"id": "sqli-tautology", "type": "sql_injection", "severity": "high", "pattern": "('|%27)\\s*(or|and)\\s+['\"]?\\d+['\"]?\\s*=\\s*['\"]?\\d+", "target": "request"},
+    {"id": "sqli-union", "type": "sql_injection", "severity": "high", "pattern": "union(\\s|\\+|/\\*.*?\\*/)+(all(\\s|\\+)+)?select", "target": "request"},
+    {"id": "sqli-comment", "type": "sql_injection", "severity": "medium", "pattern": "(--|#|/\\*)\\s*$|;\\s*(drop|insert|update|delete)\\s", "target": "request"},
+    {"id": "sqli-sleep", "type": "sql_injection", "severity": "high", "pattern": "(sleep\\(\\d+\\)|benchmark\\(|waitfor\\s+delay)", "target": "request"},
+    {"id": "xss-script", "type": "xss", "severity": "high", "pattern": "<\\s*script", "target": "request"},
+    {"id": "xss-js-uri", "type": "xss", "severity": "medium", "pattern": "javascript\\s*:", "target": "request"},
+    {"id": "xss-handler", "type": "xss", "severity": "medium", "pattern": "\\bon(error|load|click|mouseover)\\s*=", "target": "request"},
+    {"id": "traversal-dots", "type": "directory_traversal", "severity": "high", "pattern": "(\\.\\./){2,}|(\\.\\.\\\\){2,}", "target": "request"},
+    {"id": "traversal-sensitive", "type": "directory_traversal", "severity": "high", "pattern": "/etc/(passwd|shadow)|boot\\.ini|win\\.ini", "target": "request"},
+    {"id": "scanner-ua", "type": "scanner", "severity": "low", "pattern": "(sqlmap|nikto|nmap|masscan|dirbuster|acunetix|nessus)", "target": "user_agent"}
+  ],
+  "brute_force": {"status": 401, "threshold": 10, "severity": "high"}
+}
